@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dama Digital</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Main Menu -->
+        <section id="main-menu" class="screen active">
+            <div class="menu-container">
+                <h1 class="glitch" data-text="Dama Digital">Dama Digital</h1>
+                <p class="subtitle">Modern Checkers Experience</p>
+                
+                <div class="menu-buttons">
+                    <button class="btn btn-primary" onclick="app.showScreen('difficulty-menu')">Modo Campanha (IA)</button>
+                    <button class="btn btn-primary" onclick="app.startGame('pvp')">Jogador vs Jogador</button>
+                    <button class="btn btn-secondary" onclick="app.showScreen('how-to-play')">Como Jogar</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Difficulty Selection -->
+        <section id="difficulty-menu" class="screen">
+            <div class="menu-container">
+                <h2>Selecione a Dificuldade</h2>
+                <div class="menu-buttons">
+                    <button class="btn btn-primary" onclick="app.startGame('ai', 'easy')">Fácil</button>
+                    <button class="btn btn-primary" onclick="app.startGame('ai', 'medium')">Médio</button>
+                    <button class="btn btn-primary" onclick="app.startGame('ai', 'hard')">Difícil</button>
+                    <button class="btn btn-secondary" onclick="app.showScreen('main-menu')">Voltar</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- How To Play -->
+        <section id="how-to-play" class="screen">
+            <div class="menu-container rules-container">
+                <h2>Como Jogar</h2>
+                <div class="rules-content">
+                    <p><strong>Objetivo:</strong> Capturar todas as peças do oponente ou deixá-lo sem movimentos.</p>
+                    <p><strong>Movimento:</strong> Peças movem-se diagonalmente para frente. Damas movem-se longas distâncias em qualquer direção diagonal.</p>
+                    <p><strong>Captura:</strong> A captura é OBRIGATÓRIA. Se houver caminho livre após uma captura, devem ser feitas capturas múltiplas.</p>
+                    <p><strong>Dama:</strong> Ao alcançar a última fileira do adversário, a peça é promovida a Dama, ganhando muito mais poder e mobilidade.</p>
+                    <p><strong>Dicas:</strong> Tente manter sua fileira base protegida o máximo possível para evitar Damas inimigas precoces.</p>
+                </div>
+                <button class="btn btn-secondary" onclick="app.showScreen('main-menu')">Voltar</button>
+            </div>
+        </section>
+
+        <!-- Game Screen -->
+        <section id="game-screen" class="screen">
+            <header class="game-header">
+                <div class="player-info player1 active-turn">
+                    <span class="player-name">Jogador 1 (Ciano)</span>
+                    <span class="captures" id="p1-captures">0</span>
+                </div>
+                <div class="turn-indicator" id="turn-indicator">Turno do Jogador 1</div>
+                <div class="player-info player2">
+                    <span class="player-name" id="p2-name">Jogador 2 (Rosa)</span>
+                    <span class="captures" id="p2-captures">0</span>
+                </div>
+            </header>
+
+            <div class="board-wrapper">
+                <div class="coordinates top">
+                    <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span>
+                </div>
+                <div class="coordinates-side left">
+                    <span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+                </div>
+                <div id="board" class="board">
+                    <!-- Board cells generated via JS -->
+                </div>
+                <div class="coordinates-side right">
+                    <span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+                </div>
+                <div class="coordinates bottom">
+                    <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span>
+                </div>
+            </div>
+
+            <footer class="game-footer">
+                <button class="btn btn-secondary btn-small" onclick="app.quitGame()">Sair</button>
+                <button class="btn btn-secondary btn-small" onclick="app.restartGame()">Reiniciar</button>
+            </footer>
+            
+            <div id="game-over-overlay" class="overlay hidden">
+                <div class="modal">
+                    <h2 id="winner-text">Jogador 1 Venceu!</h2>
+                    <div class="menu-buttons">
+                        <button class="btn btn-primary" onclick="app.restartGame()">Jogar Novamente</button>
+                        <button class="btn btn-secondary" onclick="app.quitGame()">Menu Principal</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/game.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
