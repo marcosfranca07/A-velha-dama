@@ -340,7 +340,7 @@ input[type="text"]:focus {
 
 /* Pieces */
 .piece {
-    width: 80%; height: 80%; border-radius: 50%; cursor: pointer; position: absolute;
+    width: 80%; height: 80%; border-radius: 50%; cursor: pointer; position: relative;
     transition: transform 0.3s ease; z-index: 5; display: flex; justify-content: center; align-items: center;
 }
 
