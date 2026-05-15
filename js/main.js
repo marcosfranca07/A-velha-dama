@@ -56,7 +56,7 @@ class App {
         this.p2Name = document.getElementById('p2-name');
         this.bgMusic = document.getElementById('bg-music');
         
-        if (this.bgMusic) this.bgMusic.volume = 0.2; 
+        if (this.bgMusic) this.bgMusic.volume = 0.15; 
         
         this.sfx = new SoundEngine();
 
