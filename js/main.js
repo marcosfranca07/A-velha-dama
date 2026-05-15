@@ -1,3 +1,47 @@
+class SoundEngine {
+    constructor() {
+        this.ctx = null;
+    }
+    
+    init() {
+        if (!this.ctx) {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    playOscillator(type, freqStart, freqEnd, duration, vol = 0.1) {
+        if (!this.ctx) return;
+        let osc = this.ctx.createOscillator();
+        let gain = this.ctx.createGain();
+        osc.type = type;
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        
+        let now = this.ctx.currentTime;
+        osc.frequency.setValueAtTime(freqStart, now);
+        if (freqEnd) {
+            osc.frequency.exponentialRampToValueAtTime(freqEnd, now + duration);
+        }
+        
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+        
+        osc.start(now);
+        osc.stop(now + duration);
+    }
+
+    playClick() { this.playOscillator('sine', 600, 800, 0.1, 0.05); }
+    playMove() { this.playOscillator('triangle', 300, 100, 0.15, 0.1); }
+    playCapture() { this.playOscillator('sawtooth', 800, 100, 0.3, 0.1); }
+    playPromote() {
+        this.playOscillator('sine', 400, 600, 0.2, 0.1);
+        setTimeout(() => this.playOscillator('sine', 600, 800, 0.4, 0.1), 150);
+    }
+}
+
 class App {
     constructor() {
         this.game = null;
@@ -12,9 +56,21 @@ class App {
         this.p2Name = document.getElementById('p2-name');
         this.bgMusic = document.getElementById('bg-music');
         
-        this.bgMusic.volume = 0.2; // Volume baixo
+        if (this.bgMusic) this.bgMusic.volume = 0.2; 
+        
+        this.sfx = new SoundEngine();
 
         this.init();
+    }
+
+    playSound(type) {
+        this.sfx.init();
+        switch(type) {
+            case 'click': this.sfx.playClick(); break;
+            case 'move': this.sfx.playMove(); break;
+            case 'capture': this.sfx.playCapture(); break;
+            case 'promote': this.sfx.playPromote(); break;
+        }
     }
 
     init() {
@@ -28,6 +84,7 @@ class App {
     }
 
     login() {
+        this.playSound('click');
         let input = document.getElementById('player-name-input').value.trim();
         if (input) {
             this.playerName = input;
@@ -38,6 +95,7 @@ class App {
     }
 
     logout() {
+        this.playSound('click');
         this.playerName = '';
         localStorage.removeItem('damaPlayerName');
         this.init();
@@ -114,6 +172,7 @@ class App {
     }
 
     startGame(mode, difficulty = 'medium') {
+        this.playSound('click');
         this.playMusic();
         this.gameMode = mode;
         this.game = new Game();
@@ -135,6 +194,7 @@ class App {
     }
 
     quitGame() {
+        this.playSound('click');
         this.game = null;
         this.ai = null;
         document.getElementById('game-over-overlay').classList.add('hidden');
@@ -142,6 +202,7 @@ class App {
     }
 
     restartGame() {
+        this.playSound('click');
         if (this.gameMode) {
             let diff = this.ai ? this.ai.difficulty : 'medium';
             this.startGame(this.gameMode, diff);
@@ -151,6 +212,10 @@ class App {
     renderBoard() {
         this.boardElement.innerHTML = '';
         
+        let allMoves = this.game.getAllValidMoves(this.game.currentPlayer);
+        let mandatoryCaptures = allMoves.filter(m => m.isCapture);
+        let mustCapturePos = mandatoryCaptures.map(m => `${m.from.r},${m.from.c}`);
+
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
                 let cell = document.createElement('div');
@@ -173,6 +238,10 @@ class App {
                     if (this.game.selectedPiece && this.game.selectedPiece.r === r && this.game.selectedPiece.c === c) {
                         pieceDiv.classList.add('selected');
                     }
+
+                    if (mustCapturePos.includes(`${r},${c}`)) {
+                        pieceDiv.classList.add('must-capture');
+                    }
                     
                     cell.appendChild(pieceDiv);
                 }
@@ -182,7 +251,11 @@ class App {
         }
     }
 
-    updateUI() {
+    updateUI(lastMovePromoted = false, captureOccurred = false) {
+        if (captureOccurred) this.playSound('capture');
+        else if (!lastMovePromoted && this.game.selectedPiece === null) this.playSound('move');
+        if (lastMovePromoted) this.playSound('promote');
+
         this.renderBoard();
         
         this.p1Captures.innerText = this.game.captures[1];
@@ -216,11 +289,12 @@ class App {
         let moveIndex = this.game.validMoves.findIndex(m => m.to.r === r && m.to.c === c);
         if (moveIndex !== -1) {
             let move = this.game.validMoves[moveIndex];
-            this.game.makeMove(move);
-            this.updateUI();
+            let result = this.game.makeMove(move);
+            this.updateUI(result.promoted, result.capture);
         } else {
             if (this.game.selectPiece(r, c)) {
                 this.updateUI();
+                this.playSound('click');
             }
         }
     }
@@ -230,8 +304,8 @@ class App {
         
         let move = this.ai.getBestMove(this.game);
         if (move) {
-            this.game.makeMove(move);
-            this.updateUI();
+            let result = this.game.makeMove(move);
+            this.updateUI(result.promoted, result.capture);
         }
     }
 

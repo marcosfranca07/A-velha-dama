@@ -358,6 +358,16 @@ input[type="text"]:focus {
 .piece.player1.king { border: 2px solid white; box-shadow: 0 0 15px var(--primary-color); }
 .piece.player2.king { border: 2px solid white; box-shadow: 0 0 15px var(--secondary-color); }
 
+/* Animação para peças com captura obrigatória */
+.piece.must-capture {
+    animation: mandatoryPulse 1s infinite alternate;
+}
+
+@keyframes mandatoryPulse {
+    from { filter: brightness(1) drop-shadow(0 0 2px white); transform: scale(1); }
+    to { filter: brightness(1.5) drop-shadow(0 0 10px white); transform: scale(1.1); }
+}
+
 .piece.captured { animation: explode 0.5s forwards; }
 @keyframes explode {
     0% { transform: scale(1); opacity: 1; }
