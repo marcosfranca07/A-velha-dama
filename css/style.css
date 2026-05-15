@@ -28,6 +28,21 @@ body {
 
 /* ==================== THEMES ==================== */
 
+/* Theme: Menu (Lo-Fi Chillhop Vibe - Sunset Colors) */
+body.theme-menu {
+    --bg-color: #1c0b2b; /* Deep Purple */
+    --text-color: #fceade;
+    --primary-color: #ff7b00; /* Vibrant Orange/Sunset */
+    --secondary-color: #f72585; /* Hot Pink */
+    background: linear-gradient(135deg, #1c0b2b 0%, #3a0ca3 50%, #4cc9f0 100%);
+}
+
+body.theme-menu .menu-container {
+    background: rgba(28, 11, 43, 0.7);
+    border: 1px solid rgba(255, 123, 0, 0.3);
+    box-shadow: 0 0 30px rgba(247, 37, 133, 0.3);
+}
+
 /* Theme: Easy (Wood/Classic) */
 body.theme-easy {
     --bg-color: #2c1e16;

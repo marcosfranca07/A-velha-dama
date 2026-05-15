@@ -46,7 +46,26 @@ class App {
     playMusic() {
         // Tenta tocar o áudio caso o navegador permita após interação
         if (this.bgMusic.paused) {
-            this.bgMusic.play().catch(e => console.log("Áudio bloqueado até interação:", e));
+            let playPromise = this.bgMusic.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    document.getElementById('audio-toggle').innerText = '🔊 Som';
+                }).catch(e => {
+                    console.log("Áudio bloqueado até interação:", e);
+                    document.getElementById('audio-toggle').innerText = '🔇 Som';
+                });
+            }
+        }
+    }
+
+    toggleMusic() {
+        let btn = document.getElementById('audio-toggle');
+        if (this.bgMusic.paused) {
+            this.bgMusic.play();
+            btn.innerText = '🔊 Som';
+        } else {
+            this.bgMusic.pause();
+            btn.innerText = '🔇 Som';
         }
     }
 

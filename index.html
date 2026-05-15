@@ -8,10 +8,16 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="theme-menu">
-    <!-- Áudio de fundo -->
-    <audio id="bg-music" loop>
-        <source src="https://cdn.pixabay.com/download/audio/2022/01/21/audio_31743c58bb.mp3?filename=lofi-study-112191.mp3" type="audio/mpeg">
+    <!-- Áudio de fundo: Lo-Fi / Chillhop via Mixkit (link altamente confiável) -->
+    <audio id="bg-music" loop crossorigin="anonymous">
+        <source src="https://assets.mixkit.co/music/preview/mixkit-chill-bro-894.mp3" type="audio/mpeg">
+        <source src="https://assets.mixkit.co/music/preview/mixkit-raising-me-higher-34.mp3" type="audio/mpeg">
     </audio>
+
+    <!-- Botão de controle de áudio (Fixo no topo direito) -->
+    <button id="audio-toggle" class="btn btn-secondary btn-small" style="position: fixed; top: 20px; right: 20px; z-index: 1000; border-radius: 20px;" onclick="app.toggleMusic()">
+        🔇 Som
+    </button>
 
     <div id="app">
         <!-- Tela de Login -->
