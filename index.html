@@ -8,11 +8,12 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="theme-menu">
-    <!-- Player do YouTube em segundo plano -->
-    <div id="yt-player-container" style="position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none;">
-        <div id="youtube-player"></div>
-    </div>
-    <script src="https://www.youtube.com/iframe_api"></script>
+    <!-- Player do YouTube Simplificado -->
+    <iframe id="bg-music-yt" 
+        style="position: absolute; width: 0; height: 0; border: none; pointer-events: none;" 
+        src="" 
+        allow="autoplay">
+    </iframe>
 
     <!-- Botão de controle de áudio (Fixo no topo direito) -->
     <button id="audio-toggle" class="btn btn-secondary btn-small" style="position: fixed; top: 20px; right: 20px; z-index: 1000; border-radius: 20px;" onclick="app.toggleMusic()">

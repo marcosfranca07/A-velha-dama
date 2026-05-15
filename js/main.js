@@ -55,37 +55,14 @@ class App {
         this.p1Name = document.getElementById('p1-name');
         this.p2Name = document.getElementById('p2-name');
         
-        // YouTube Player State
-        this.ytPlayer = null;
-        this.isMuted = false;
-        this.setupYouTube();
+        // YouTube State
+        this.ytIframe = document.getElementById('bg-music-yt');
+        this.ytVideoId = 'hBqcXvD8-9A';
+        this.isPlaying = false;
         
         this.sfx = new SoundEngine();
 
         this.init();
-    }
-
-    setupYouTube() {
-        window.onYouTubeIframeAPIReady = () => {
-            this.ytPlayer = new YT.Player('youtube-player', {
-                height: '0',
-                width: '0',
-                videoId: 'hBqcXvD8-9A', // Relaxing Medieval Ambient
-                playerVars: {
-                    'autoplay': 0,
-                    'loop': 1,
-                    'playlist': 'hBqcXvD8-9A',
-                    'controls': 0,
-                    'showinfo': 0,
-                    'modestbranding': 1
-                },
-                events: {
-                    'onReady': (event) => {
-                        event.target.setVolume(20);
-                    }
-                }
-            });
-        };
     }
 
     playSound(type) {
@@ -127,26 +104,22 @@ class App {
     }
 
     playMusic() {
-        if (this.ytPlayer && this.ytPlayer.playVideo) {
-            this.ytPlayer.playVideo();
+        if (this.ytIframe && !this.isPlaying) {
+            const url = `https://www.youtube.com/embed/${this.ytVideoId}?autoplay=1&loop=1&playlist=${this.ytVideoId}&controls=0&mute=0&start=1`;
+            this.ytIframe.src = url;
             document.getElementById('audio-toggle').innerText = '🔊 Som';
-            this.isMuted = false;
+            this.isPlaying = true;
         }
     }
 
     toggleMusic() {
         let btn = document.getElementById('audio-toggle');
-        if (!this.ytPlayer) return;
-
-        const state = this.ytPlayer.getPlayerState();
-        if (state === YT.PlayerState.PLAYING) {
-            this.ytPlayer.pauseVideo();
+        if (this.isPlaying) {
+            this.ytIframe.src = "";
             btn.innerText = '🔇 Som';
-            this.isMuted = true;
+            this.isPlaying = false;
         } else {
-            this.ytPlayer.playVideo();
-            btn.innerText = '🔊 Som';
-            this.isMuted = false;
+            this.playMusic();
         }
     }
 
