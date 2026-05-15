@@ -8,10 +8,11 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="theme-menu">
-    <!-- Áudio de fundo: Lo-Fi / Chillhop via Mixkit (link altamente confiável) -->
-    <audio id="bg-music" loop crossorigin="anonymous">
-        <source src="https://www.chosic.com/wp-content/uploads/2021/07/The-Old-Tower-Inn.mp3" type="audio/mpeg">
-    </audio>
+    <!-- Player do YouTube em segundo plano -->
+    <div id="yt-player-container" style="position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none;">
+        <div id="youtube-player"></div>
+    </div>
+    <script src="https://www.youtube.com/iframe_api"></script>
 
     <!-- Botão de controle de áudio (Fixo no topo direito) -->
     <button id="audio-toggle" class="btn btn-secondary btn-small" style="position: fixed; top: 20px; right: 20px; z-index: 1000; border-radius: 20px;" onclick="app.toggleMusic()">

@@ -54,13 +54,38 @@ class App {
         this.p2Captures = document.getElementById('p2-captures');
         this.p1Name = document.getElementById('p1-name');
         this.p2Name = document.getElementById('p2-name');
-        this.bgMusic = document.getElementById('bg-music');
         
-        if (this.bgMusic) this.bgMusic.volume = 0.15; 
+        // YouTube Player State
+        this.ytPlayer = null;
+        this.isMuted = false;
+        this.setupYouTube();
         
         this.sfx = new SoundEngine();
 
         this.init();
+    }
+
+    setupYouTube() {
+        window.onYouTubeIframeAPIReady = () => {
+            this.ytPlayer = new YT.Player('youtube-player', {
+                height: '0',
+                width: '0',
+                videoId: 'hBqcXvD8-9A', // Relaxing Medieval Ambient
+                playerVars: {
+                    'autoplay': 0,
+                    'loop': 1,
+                    'playlist': 'hBqcXvD8-9A',
+                    'controls': 0,
+                    'showinfo': 0,
+                    'modestbranding': 1
+                },
+                events: {
+                    'onReady': (event) => {
+                        event.target.setVolume(20);
+                    }
+                }
+            });
+        };
     }
 
     playSound(type) {
@@ -102,28 +127,26 @@ class App {
     }
 
     playMusic() {
-        // Tenta tocar o áudio caso o navegador permita após interação
-        if (this.bgMusic.paused) {
-            let playPromise = this.bgMusic.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    document.getElementById('audio-toggle').innerText = '🔊 Som';
-                }).catch(e => {
-                    console.log("Áudio bloqueado até interação:", e);
-                    document.getElementById('audio-toggle').innerText = '🔇 Som';
-                });
-            }
+        if (this.ytPlayer && this.ytPlayer.playVideo) {
+            this.ytPlayer.playVideo();
+            document.getElementById('audio-toggle').innerText = '🔊 Som';
+            this.isMuted = false;
         }
     }
 
     toggleMusic() {
         let btn = document.getElementById('audio-toggle');
-        if (this.bgMusic.paused) {
-            this.bgMusic.play();
-            btn.innerText = '🔊 Som';
-        } else {
-            this.bgMusic.pause();
+        if (!this.ytPlayer) return;
+
+        const state = this.ytPlayer.getPlayerState();
+        if (state === YT.PlayerState.PLAYING) {
+            this.ytPlayer.pauseVideo();
             btn.innerText = '🔇 Som';
+            this.isMuted = true;
+        } else {
+            this.ytPlayer.playVideo();
+            btn.innerText = '🔊 Som';
+            this.isMuted = false;
         }
     }
 
