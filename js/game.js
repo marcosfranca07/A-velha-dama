@@ -10,6 +10,8 @@ class Game {
         this.winner = null;
         this.consecutiveCapturePiece = null; // Se estiver em uma sequência de capturas
         this.lastMove = null;
+        this.lastMoveAnimated = false;
+        this.initialRenderDone = false;
         this.initBoard();
     }
 
@@ -197,12 +199,14 @@ class Game {
             if (nextMoves.length > 0) {
                 this.consecutiveCapturePiece = { r: move.to.r, c: move.to.c };
                 this.lastMove = move;
+                this.lastMoveAnimated = false;
                 return { capture: true, consecutive: true, promoted, move: move };
             }
         }
         
         this.consecutiveCapturePiece = null;
         this.lastMove = move;
+        this.lastMoveAnimated = false;
         this.switchTurn();
         return { capture: captured, consecutive: false, promoted, move: move };
     }

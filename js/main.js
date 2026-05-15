@@ -314,14 +314,14 @@ class App {
                     pieceDiv.className = `piece player${piece.player} ${piece.isKing ? 'king' : ''}`;
                     
                     // Animação de entrada inicial
-                    if (!this.game.lastMove) {
+                    if (!this.game.initialRenderDone) {
                         pieceDiv.classList.add('piece-enter');
                         pieceDiv.style.animationDelay = `${pieceIndex * 0.02}s`;
                     }
                     pieceIndex++;
                     
                     // Animação de deslizamento (FLIP manual via CSS Transform inicial)
-                    if (this.game.lastMove && this.game.lastMove.to.r === r && this.game.lastMove.to.c === c) {
+                    if (this.game.lastMove && !this.game.lastMoveAnimated && this.game.lastMove.to.r === r && this.game.lastMove.to.c === c) {
                         let dy = this.game.lastMove.from.r - r;
                         let dx = this.game.lastMove.from.c - c;
                         
@@ -349,7 +349,7 @@ class App {
                 }
                 
                 // Efeito de explosão de captura no último turno
-                if (this.game.lastMove && this.game.lastMove.isCapture && this.game.lastMove.captured.r === r && this.game.lastMove.captured.c === c) {
+                if (this.game.lastMove && !this.game.lastMoveAnimated && this.game.lastMove.isCapture && this.game.lastMove.captured.r === r && this.game.lastMove.captured.c === c) {
                     let explodeDiv = document.createElement('div');
                     // Cria uma peça fantasma para explodir
                     let capturedPlayer = piece ? (piece.player === 1 ? 2 : 1) : (this.game.currentPlayer === 1 ? 2 : 1);
@@ -362,6 +362,12 @@ class App {
                 
                 this.boardElement.appendChild(cell);
             }
+        }
+        
+        // Marca as animações como feitas para não repetir ao selecionar peças
+        if (this.game) {
+            this.game.initialRenderDone = true;
+            this.game.lastMoveAnimated = true;
         }
     }
 
