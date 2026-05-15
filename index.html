@@ -8,13 +8,6 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="theme-menu">
-    <!-- Player do YouTube Simplificado -->
-    <iframe id="bg-music-yt" 
-        style="position: absolute; width: 0; height: 0; border: none; pointer-events: none;" 
-        src="" 
-        allow="autoplay">
-    </iframe>
-
     <!-- Botão de controle de áudio (Fixo no topo direito) -->
     <button id="audio-toggle" class="btn btn-secondary btn-small" style="position: fixed; top: 20px; right: 20px; z-index: 1000; border-radius: 20px;" onclick="app.toggleMusic()">
         🔇 Som
@@ -144,6 +137,7 @@
 
     <script src="js/game.js"></script>
     <script src="js/ai.js"></script>
+    <script src="js/music.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

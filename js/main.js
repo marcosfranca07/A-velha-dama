@@ -55,10 +55,9 @@ class App {
         this.p1Name = document.getElementById('p1-name');
         this.p2Name = document.getElementById('p2-name');
         
-        // YouTube State
-        this.ytIframe = document.getElementById('bg-music-yt');
-        this.ytVideoId = 'hBqcXvD8-9A';
-        this.isPlaying = false;
+        // Motor de música ambiente procedural
+        this.music = new AmbientMusicEngine();
+        this.musicEnabled = true;
         
         this.sfx = new SoundEngine();
 
@@ -91,7 +90,7 @@ class App {
         if (input) {
             this.playerName = input;
             localStorage.setItem('damaPlayerName', this.playerName);
-            this.playMusic();
+            this.playMusic('menu');
             this.init();
         }
     }
@@ -103,23 +102,29 @@ class App {
         this.init();
     }
 
-    playMusic() {
-        if (this.ytIframe && !this.isPlaying) {
-            const url = `https://www.youtube.com/embed/${this.ytVideoId}?autoplay=1&loop=1&playlist=${this.ytVideoId}&controls=0&mute=0&start=1`;
-            this.ytIframe.src = url;
+    playMusic(theme = 'menu') {
+        if (this.musicEnabled) {
+            this.music.play(theme);
             document.getElementById('audio-toggle').innerText = '🔊 Som';
-            this.isPlaying = true;
         }
     }
 
     toggleMusic() {
         let btn = document.getElementById('audio-toggle');
-        if (this.isPlaying) {
-            this.ytIframe.src = "";
+        if (this.music.isPlaying) {
+            this.music.stop();
+            this.musicEnabled = false;
             btn.innerText = '🔇 Som';
-            this.isPlaying = false;
         } else {
-            this.playMusic();
+            this.musicEnabled = true;
+            // Determina o tema correto baseado no estado atual
+            let theme = 'menu';
+            if (this.game && this.ai) {
+                theme = this.ai.difficulty;
+            } else if (this.game) {
+                theme = 'medium';
+            }
+            this.playMusic(theme);
         }
     }
 
@@ -163,16 +168,18 @@ class App {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
         if(screenId === 'main-menu' || screenId === 'login-screen' || screenId === 'difficulty-menu') {
-            this.setTheme('menu'); 
+            this.setTheme('menu');
+            this.playMusic('menu');
         }
     }
 
     startGame(mode, difficulty = 'medium') {
         this.playSound('click');
-        this.playMusic();
         this.gameMode = mode;
         this.game = new Game();
-        this.setTheme(mode === 'ai' ? difficulty : 'medium');
+        let theme = mode === 'ai' ? difficulty : 'medium';
+        this.setTheme(theme);
+        this.playMusic(theme);
         
         this.p1Name.innerText = this.playerName;
 
