@@ -261,6 +261,9 @@ class App {
         let allMoves = this.game.getAllValidMoves(this.game.currentPlayer);
         let mandatoryCaptures = allMoves.filter(m => m.isCapture);
         let mustCapturePos = mandatoryCaptures.map(m => `${m.from.r},${m.from.c}`);
+        
+        // Quantas peças existem no tabuleiro (para o delay escalonado na entrada)
+        let pieceIndex = 0;
 
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
@@ -270,6 +273,16 @@ class App {
                 cell.dataset.r = r;
                 cell.dataset.c = c;
                 cell.setAttribute('role', 'gridcell');
+                
+                // Highlight de último movimento
+                if (this.game.lastMove) {
+                    if (this.game.lastMove.from.r === r && this.game.lastMove.from.c === c) {
+                        cell.classList.add('last-move-source');
+                    }
+                    if (this.game.lastMove.to.r === r && this.game.lastMove.to.c === c) {
+                        cell.classList.add('last-move-target');
+                    }
+                }
 
                 let cellName = this.getCellName(r, c);
                 let piece = this.game.board[r][c];
@@ -300,6 +313,30 @@ class App {
                     let pieceDiv = document.createElement('div');
                     pieceDiv.className = `piece player${piece.player} ${piece.isKing ? 'king' : ''}`;
                     
+                    // Animação de entrada inicial
+                    if (!this.game.lastMove) {
+                        pieceDiv.classList.add('piece-enter');
+                        pieceDiv.style.animationDelay = `${pieceIndex * 0.02}s`;
+                    }
+                    pieceIndex++;
+                    
+                    // Animação de deslizamento (FLIP manual via CSS Transform inicial)
+                    if (this.game.lastMove && this.game.lastMove.to.r === r && this.game.lastMove.to.c === c) {
+                        let dy = this.game.lastMove.from.r - r;
+                        let dx = this.game.lastMove.from.c - c;
+                        
+                        // Posiciona a peça no local antigo usando transform
+                        pieceDiv.style.transform = `translate(calc(var(--cell-size) * ${dx}), calc(var(--cell-size) * ${dy}))`;
+                        
+                        // No próximo frame, remove o transform para ela deslizar até a posição real
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                pieceDiv.classList.add('sliding-piece');
+                                pieceDiv.style.transform = '';
+                            });
+                        });
+                    }
+
                     if (this.game.selectedPiece && this.game.selectedPiece.r === r && this.game.selectedPiece.c === c) {
                         pieceDiv.classList.add('selected');
                     }
@@ -309,6 +346,18 @@ class App {
                     }
                     
                     cell.appendChild(pieceDiv);
+                }
+                
+                // Efeito de explosão de captura no último turno
+                if (this.game.lastMove && this.game.lastMove.isCapture && this.game.lastMove.captured.r === r && this.game.lastMove.captured.c === c) {
+                    let explodeDiv = document.createElement('div');
+                    // Cria uma peça fantasma para explodir
+                    let capturedPlayer = piece ? (piece.player === 1 ? 2 : 1) : (this.game.currentPlayer === 1 ? 2 : 1);
+                    explodeDiv.className = `piece player${capturedPlayer} captured`;
+                    cell.appendChild(explodeDiv);
+                    
+                    // Remove do DOM após animação
+                    setTimeout(() => { if(explodeDiv.parentElement) explodeDiv.remove(); }, 500);
                 }
                 
                 this.boardElement.appendChild(cell);
@@ -333,7 +382,11 @@ class App {
             this.turnIndicator.innerText = `Turno de ${this.playerName}`;
             this.turnIndicator.style.color = "var(--primary-color)";
         } else {
-            this.turnIndicator.innerText = this.gameMode === 'ai' ? "Turno da CPU" : "Turno do Jogador 2";
+            if (this.gameMode === 'ai') {
+                this.turnIndicator.innerHTML = `A CPU está pensando<span class="ai-thinking"></span>`;
+            } else {
+                this.turnIndicator.innerText = "Turno do Jogador 2";
+            }
             this.turnIndicator.style.color = "var(--secondary-color)";
         }
 
@@ -342,8 +395,18 @@ class App {
             return;
         }
 
+        // Aplica o brilho de promoção se ocorreu
+        if (lastMovePromoted && this.game.lastMove) {
+            setTimeout(() => {
+                let cell = document.querySelector(`.cell[data-r="${this.game.lastMove.to.r}"][data-c="${this.game.lastMove.to.c}"] .piece`);
+                if (cell) cell.classList.add('promote-animation');
+            }, 300); // Espera o slide terminar
+        }
+
         if (this.gameMode === 'ai' && this.game.currentPlayer === 2 && !this.game.isGameOver) {
-            setTimeout(() => this.makeAIMove(), 600); 
+            // Adiciona um pequeno delay aleatório para a IA parecer mais humana
+            let thinkingTime = 600 + Math.random() * 800;
+            setTimeout(() => this.makeAIMove(), thinkingTime); 
         }
     }
 

@@ -1,0 +1,54 @@
+/* Animações extras (Entrada, Deslizamento, Promoção) */
+
+/* Entrada escalonada das peças */
+.piece-enter {
+    animation: piecePopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
+}
+
+@keyframes piecePopIn {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Destaque do último movimento */
+.last-move-source {
+    background-color: rgba(255, 255, 0, 0.2) !important;
+}
+
+.last-move-target {
+    background-color: rgba(255, 255, 0, 0.4) !important;
+}
+
+/* Promoção à dama */
+.promote-animation {
+    animation: promoteGlow 1s ease-out forwards;
+}
+
+@keyframes promoteGlow {
+    0% { filter: brightness(1); transform: scale(1); box-shadow: 0 0 0 white; }
+    50% { filter: brightness(2); transform: scale(1.3); box-shadow: 0 0 30px white; }
+    100% { filter: brightness(1); transform: scale(1); box-shadow: 0 0 10px white; }
+}
+
+/* Indicador de IA Pensando */
+.ai-thinking {
+    display: inline-block;
+}
+
+.ai-thinking::after {
+    content: '.';
+    animation: dots 1.5s infinite steps(4);
+}
+
+@keyframes dots {
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+}
+
+/* Deslizamento da peça (FLIP) */
+.sliding-piece {
+    transition: transform 0.3s ease-out, top 0.3s ease-out, left 0.3s ease-out !important;
+    z-index: 100 !important;
+}

@@ -9,6 +9,7 @@ class Game {
         this.isGameOver = false;
         this.winner = null;
         this.consecutiveCapturePiece = null; // Se estiver em uma sequência de capturas
+        this.lastMove = null;
         this.initBoard();
     }
 
@@ -195,13 +196,15 @@ class Game {
             let nextMoves = this.getPieceMoves(move.to.r, move.to.c, piece).filter(m => m.isCapture);
             if (nextMoves.length > 0) {
                 this.consecutiveCapturePiece = { r: move.to.r, c: move.to.c };
-                return { capture: true, consecutive: true, promoted };
+                this.lastMove = move;
+                return { capture: true, consecutive: true, promoted, move: move };
             }
         }
         
         this.consecutiveCapturePiece = null;
+        this.lastMove = move;
         this.switchTurn();
-        return { capture: captured, consecutive: false, promoted };
+        return { capture: captured, consecutive: false, promoted, move: move };
     }
 
     switchTurn() {
