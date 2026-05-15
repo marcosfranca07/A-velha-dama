@@ -2,32 +2,112 @@ class App {
     constructor() {
         this.game = null;
         this.ai = null;
-        this.gameMode = null; // 'pvp' ou 'ai'
+        this.gameMode = null; 
+        this.playerName = localStorage.getItem('damaPlayerName') || '';
         this.boardElement = document.getElementById('board');
         this.turnIndicator = document.getElementById('turn-indicator');
         this.p1Captures = document.getElementById('p1-captures');
         this.p2Captures = document.getElementById('p2-captures');
+        this.p1Name = document.getElementById('p1-name');
         this.p2Name = document.getElementById('p2-name');
+        this.bgMusic = document.getElementById('bg-music');
         
-        // Adiciona som base placeholder (se tivéssemos os arquivos, descomentaríamos e usaríamos Audio API)
-        // this.sounds = { move: new Audio('assets/move.mp3'), capture: new Audio('assets/capture.mp3') };
+        this.bgMusic.volume = 0.2; // Volume baixo
+
+        this.init();
+    }
+
+    init() {
+        if (this.playerName) {
+            this.showScreen('main-menu');
+            document.getElementById('welcome-text').innerText = `Bem-vindo de volta, ${this.playerName}!`;
+            this.updateLeaderboard();
+        } else {
+            this.showScreen('login-screen');
+        }
+    }
+
+    login() {
+        let input = document.getElementById('player-name-input').value.trim();
+        if (input) {
+            this.playerName = input;
+            localStorage.setItem('damaPlayerName', this.playerName);
+            this.playMusic();
+            this.init();
+        }
+    }
+
+    logout() {
+        this.playerName = '';
+        localStorage.removeItem('damaPlayerName');
+        this.init();
+    }
+
+    playMusic() {
+        // Tenta tocar o áudio caso o navegador permita após interação
+        if (this.bgMusic.paused) {
+            this.bgMusic.play().catch(e => console.log("Áudio bloqueado até interação:", e));
+        }
+    }
+
+    updateLeaderboard() {
+        let scores = JSON.parse(localStorage.getItem('damaScores')) || {};
+        let list = document.getElementById('leaderboard-list');
+        list.innerHTML = '';
+        
+        let sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+        
+        if (sortedScores.length === 0) {
+            list.innerHTML = '<li>Ainda sem vitórias. Seja o primeiro!</li>';
+            return;
+        }
+
+        sortedScores.slice(0, 5).forEach(([name, score]) => {
+            let li = document.createElement('li');
+            li.innerHTML = `<span>${name}</span> <span>${score} 👑</span>`;
+            list.appendChild(li);
+        });
+    }
+
+    addWin() {
+        let scores = JSON.parse(localStorage.getItem('damaScores')) || {};
+        if (!scores[this.playerName]) scores[this.playerName] = 0;
+        scores[this.playerName]++;
+        localStorage.setItem('damaScores', JSON.stringify(scores));
+        this.updateLeaderboard();
+    }
+
+    setTheme(difficulty) {
+        document.body.className = '';
+        if (difficulty) {
+            document.body.classList.add(`theme-${difficulty}`);
+        } else {
+            document.body.classList.add(`theme-medium`); // PvP default
+        }
     }
 
     showScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
+        if(screenId === 'main-menu' || screenId === 'login-screen' || screenId === 'difficulty-menu') {
+            this.setTheme('menu'); 
+        }
     }
 
     startGame(mode, difficulty = 'medium') {
+        this.playMusic();
         this.gameMode = mode;
         this.game = new Game();
+        this.setTheme(mode === 'ai' ? difficulty : 'medium');
         
+        this.p1Name.innerText = this.playerName;
+
         if (mode === 'ai') {
             this.ai = new AI(difficulty);
             this.p2Name.innerText = `CPU (${difficulty})`;
         } else {
             this.ai = null;
-            this.p2Name.innerText = 'Jogador 2 (Rosa)';
+            this.p2Name.innerText = 'Jogador 2';
         }
 
         document.getElementById('game-over-overlay').classList.add('hidden');
@@ -59,11 +139,10 @@ class App {
                 cell.dataset.r = r;
                 cell.dataset.c = c;
                 
-                // Highlight valid moves
                 if (this.game.validMoves.some(m => m.to.r === r && m.to.c === c)) {
                     cell.classList.add('highlight');
                     cell.onclick = () => this.handleCellClick(r, c);
-                } else if ((r + c) % 2 === 1) { // Só permite clique nas casas escuras
+                } else if ((r + c) % 2 === 1) { 
                     cell.onclick = () => this.handleCellClick(r, c);
                 }
 
@@ -94,7 +173,7 @@ class App {
         document.querySelector('.player2').classList.toggle('active-turn', this.game.currentPlayer === 2);
         
         if (this.game.currentPlayer === 1) {
-            this.turnIndicator.innerText = "Turno do Jogador 1";
+            this.turnIndicator.innerText = `Turno de ${this.playerName}`;
             this.turnIndicator.style.color = "var(--primary-color)";
         } else {
             this.turnIndicator.innerText = this.gameMode === 'ai' ? "Turno da CPU" : "Turno do Jogador 2";
@@ -106,24 +185,21 @@ class App {
             return;
         }
 
-        // Se for turno da CPU
         if (this.gameMode === 'ai' && this.game.currentPlayer === 2 && !this.game.isGameOver) {
-            setTimeout(() => this.makeAIMove(), 500); // Delay pro jogador ver o turno passando
+            setTimeout(() => this.makeAIMove(), 600); 
         }
     }
 
     handleCellClick(r, c) {
         if (this.game.isGameOver) return;
-        if (this.gameMode === 'ai' && this.game.currentPlayer === 2) return; // Ignora cliques no turno da CPU
+        if (this.gameMode === 'ai' && this.game.currentPlayer === 2) return; 
 
-        // Verifica se clicou em um destino de movimento válido
         let moveIndex = this.game.validMoves.findIndex(m => m.to.r === r && m.to.c === c);
         if (moveIndex !== -1) {
             let move = this.game.validMoves[moveIndex];
             this.game.makeMove(move);
             this.updateUI();
         } else {
-            // Tenta selecionar a peça
             if (this.game.selectPiece(r, c)) {
                 this.updateUI();
             }
@@ -145,11 +221,15 @@ class App {
         let text = document.getElementById('winner-text');
         
         if (this.game.winner === 1) {
-            text.innerText = "Jogador 1 Venceu!";
+            text.innerText = `Vitória de ${this.playerName}!`;
             text.style.color = "var(--primary-color)";
             text.style.textShadow = "0 0 10px var(--primary-color)";
+            
+            // Registra a vitória apenas se foi no modo Campanha e ganhou da máquina
+            // ou se quiser registrar no PvP. O mais comum é rankear contra IA.
+            this.addWin();
         } else {
-            text.innerText = this.gameMode === 'ai' ? "CPU Venceu!" : "Jogador 2 Venceu!";
+            text.innerText = this.gameMode === 'ai' ? "A CPU Venceu!" : "Jogador 2 Venceu!";
             text.style.color = "var(--secondary-color)";
             text.style.textShadow = "0 0 10px var(--secondary-color)";
         }
@@ -158,5 +238,4 @@ class App {
     }
 }
 
-// Inicialização
 const app = new App();
