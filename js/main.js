@@ -40,6 +40,25 @@ class SoundEngine {
         this.playOscillator('sine', 400, 600, 0.2, 0.1);
         setTimeout(() => this.playOscillator('sine', 600, 800, 0.4, 0.1), 150);
     }
+    playVictory() {
+        // Fanfarra ascendente de vitória
+        let notes = [261.63, 329.63, 392.00, 523.25, 659.25];
+        notes.forEach((freq, i) => {
+            setTimeout(() => {
+                this.playOscillator('sine', freq, freq * 1.01, 0.4, 0.08);
+                this.playOscillator('triangle', freq * 0.5, freq * 0.5, 0.4, 0.04);
+            }, i * 150);
+        });
+    }
+    playDefeat() {
+        // Som descendente de derrota
+        let notes = [392.00, 329.63, 261.63, 196.00];
+        notes.forEach((freq, i) => {
+            setTimeout(() => {
+                this.playOscillator('sine', freq, freq * 0.95, 0.5, 0.06);
+            }, i * 200);
+        });
+    }
 }
 
 class App {
@@ -61,6 +80,14 @@ class App {
         
         this.sfx = new SoundEngine();
 
+        // Suporte a Enter no campo de nome
+        let nameInput = document.getElementById('player-name-input');
+        if (nameInput) {
+            nameInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') this.login();
+            });
+        }
+
         this.init();
     }
 
@@ -71,6 +98,8 @@ class App {
             case 'move': this.sfx.playMove(); break;
             case 'capture': this.sfx.playCapture(); break;
             case 'promote': this.sfx.playPromote(); break;
+            case 'victory': this.sfx.playVictory(); break;
+            case 'defeat': this.sfx.playDefeat(); break;
         }
     }
 
@@ -140,9 +169,11 @@ class App {
             return;
         }
 
-        sortedScores.slice(0, 5).forEach(([name, score]) => {
+        let medals = ['🥇', '🥈', '🥉'];
+        sortedScores.slice(0, 5).forEach(([name, score], i) => {
             let li = document.createElement('li');
-            li.innerHTML = `<span>${name}</span> <span>${score} 👑</span>`;
+            let medal = i < 3 ? medals[i] + ' ' : '';
+            li.innerHTML = `<span>${medal}${name}</span> <span>${score} 👑</span>`;
             list.appendChild(li);
         });
     }
@@ -191,6 +222,9 @@ class App {
             this.p2Name.innerText = 'Jogador 2';
         }
 
+        // Limpa qualquer confetti anterior
+        this.clearConfetti();
+
         document.getElementById('game-over-overlay').classList.add('hidden');
         this.showScreen('game-screen');
         this.updateUI();
@@ -200,16 +234,25 @@ class App {
         this.playSound('click');
         this.game = null;
         this.ai = null;
+        this.clearConfetti();
         document.getElementById('game-over-overlay').classList.add('hidden');
         this.showScreen('main-menu');
     }
 
     restartGame() {
         this.playSound('click');
+        this.clearConfetti();
         if (this.gameMode) {
             let diff = this.ai ? this.ai.difficulty : 'medium';
             this.startGame(this.gameMode, diff);
         }
+    }
+
+    // Gera nomes de coordenadas para acessibilidade (ex: "A8", "B7")
+    getCellName(r, c) {
+        let col = String.fromCharCode(65 + c); // A-H
+        let row = 8 - r; // 8-1
+        return `${col}${row}`;
     }
 
     renderBoard() {
@@ -222,18 +265,37 @@ class App {
         for (let r = 0; r < 8; r++) {
             for (let c = 0; c < 8; c++) {
                 let cell = document.createElement('div');
-                cell.className = `cell ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
+                let isDark = (r + c) % 2 === 1;
+                cell.className = `cell ${isDark ? 'dark' : 'light'}`;
                 cell.dataset.r = r;
                 cell.dataset.c = c;
-                
-                if (this.game.validMoves.some(m => m.to.r === r && m.to.c === c)) {
+                cell.setAttribute('role', 'gridcell');
+
+                let cellName = this.getCellName(r, c);
+                let piece = this.game.board[r][c];
+
+                // Construir aria-label descritivo
+                let ariaDesc = `Casa ${cellName}`;
+                if (piece) {
+                    let playerLabel = piece.player === 1 ? 'Jogador 1' : 'Jogador 2';
+                    let typeLabel = piece.isKing ? 'Dama' : 'Peça';
+                    ariaDesc += `, ${typeLabel} do ${playerLabel}`;
+                } else if (isDark) {
+                    ariaDesc += ', vazia';
+                }
+
+                // Verificar se é um destino válido
+                let isValidTarget = this.game.validMoves.some(m => m.to.r === r && m.to.c === c);
+                if (isValidTarget) {
                     cell.classList.add('highlight');
                     cell.onclick = () => this.handleCellClick(r, c);
-                } else if ((r + c) % 2 === 1) { 
+                    ariaDesc += ' (movimento disponível)';
+                } else if (isDark) {
                     cell.onclick = () => this.handleCellClick(r, c);
                 }
 
-                let piece = this.game.board[r][c];
+                cell.setAttribute('aria-label', ariaDesc);
+                
                 if (piece) {
                     let pieceDiv = document.createElement('div');
                     pieceDiv.className = `piece player${piece.player} ${piece.isKing ? 'king' : ''}`;
@@ -312,25 +374,86 @@ class App {
         }
     }
 
+    // ==================== ANIMAÇÕES DE VITÓRIA ====================
+
+    showVictoryAnimation(winner) {
+        // 1. Faz as peças do vencedor brilharem
+        let pieces = this.boardElement.querySelectorAll(`.piece.player${winner}`);
+        pieces.forEach(p => p.classList.add('victory-glow'));
+
+        // 2. Faz as casas escuras piscarem de verde
+        let darkCells = this.boardElement.querySelectorAll('.cell.dark');
+        darkCells.forEach((cell, i) => {
+            setTimeout(() => cell.classList.add('victory-flash'), i * 50);
+        });
+
+        // 3. Lança confetti
+        this.spawnConfetti();
+    }
+
+    spawnConfetti() {
+        let container = document.createElement('div');
+        container.className = 'victory-confetti';
+        container.id = 'confetti-container';
+        document.body.appendChild(container);
+
+        let colors = [
+            'var(--primary-color)', 'var(--secondary-color)', 
+            '#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96e6a1', '#dda0dd'
+        ];
+        // Cores hardcoded como fallback para CSS vars em pseudo-elementos
+        let rawColors = ['#00ffff', '#ff00ff', '#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96e6a1', '#dda0dd'];
+
+        for (let i = 0; i < 60; i++) {
+            let piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + 'vw';
+            piece.style.backgroundColor = rawColors[Math.floor(Math.random() * rawColors.length)];
+            piece.style.width = (5 + Math.random() * 10) + 'px';
+            piece.style.height = (5 + Math.random() * 10) + 'px';
+            piece.style.animationDuration = (2 + Math.random() * 3) + 's';
+            piece.style.animationDelay = Math.random() * 2 + 's';
+            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            piece.style.opacity = 0.8 + Math.random() * 0.2;
+            container.appendChild(piece);
+        }
+
+        // Auto-limpa após 6 segundos
+        setTimeout(() => this.clearConfetti(), 6000);
+    }
+
+    clearConfetti() {
+        let existing = document.getElementById('confetti-container');
+        if (existing) existing.remove();
+    }
+
     showGameOver() {
         let overlay = document.getElementById('game-over-overlay');
         let text = document.getElementById('winner-text');
         
         if (this.game.winner === 1) {
-            text.innerText = `Vitória de ${this.playerName}!`;
+            text.innerText = `🏆 Vitória de ${this.playerName}!`;
             text.style.color = "var(--primary-color)";
             text.style.textShadow = "0 0 10px var(--primary-color)";
+            this.playSound('victory');
             
             // Registra a vitória apenas se foi no modo Campanha e ganhou da máquina
             // ou se quiser registrar no PvP. O mais comum é rankear contra IA.
             this.addWin();
         } else {
-            text.innerText = this.gameMode === 'ai' ? "A CPU Venceu!" : "Jogador 2 Venceu!";
+            text.innerText = this.gameMode === 'ai' ? "💀 A CPU Venceu!" : "🏆 Jogador 2 Venceu!";
             text.style.color = "var(--secondary-color)";
             text.style.textShadow = "0 0 10px var(--secondary-color)";
+            this.playSound('defeat');
         }
+
+        // Animação de vitória no tabuleiro
+        this.showVictoryAnimation(this.game.winner);
         
-        overlay.classList.remove('hidden');
+        // Mostra o overlay com um pequeno delay para dar tempo de ver a animação
+        setTimeout(() => {
+            overlay.classList.remove('hidden');
+        }, 800);
     }
 }
 

@@ -2,47 +2,56 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Dama Digital Evolução - Jogue Damas online com IA escalável, temas visuais evolutivos e trilha sonora ambiente procedural.">
+    <meta name="theme-color" content="#1c0b2b">
     <title>Dama Digital - Evolução</title>
+
+    <!-- Favicon SVG inline -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%231a1a24'/><rect x='5' y='5' width='40' height='40' rx='3' fill='%232d2d3f'/><rect x='55' y='5' width='40' height='40' rx='3' fill='%231a1a24'/><rect x='5' y='55' width='40' height='40' rx='3' fill='%231a1a24'/><rect x='55' y='55' width='40' height='40' rx='3' fill='%232d2d3f'/><circle cx='75' cy='25' r='14' fill='%2300ffff'/><circle cx='25' cy='75' r='14' fill='%23ff00ff'/></svg>">
+
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&family=Cinzel:wght@600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="theme-menu">
-    <!-- Botão de controle de áudio (Fixo no topo direito) -->
-    <button id="audio-toggle" class="btn btn-secondary btn-small" style="position: fixed; top: 20px; right: 20px; z-index: 1000; border-radius: 20px;" onclick="app.toggleMusic()">
-        🔇 Som
-    </button>
+    <!-- Controles fixos no topo -->
+    <div class="fixed-controls">
+        <button id="audio-toggle" class="btn btn-secondary btn-small btn-icon" onclick="app.toggleMusic()" aria-label="Alternar som do jogo" title="Alternar Som">
+            🔇 Som
+        </button>
+    </div>
 
-    <div id="app">
+    <div id="app" role="main">
         <!-- Tela de Login -->
-        <section id="login-screen" class="screen active">
+        <section id="login-screen" class="screen active" aria-label="Tela de login">
             <div class="menu-container">
                 <h1 class="title">Dama Digital</h1>
                 <p class="subtitle">Bem-vindo(a) ao Desafio</p>
                 <div class="input-group">
-                    <input type="text" id="player-name-input" placeholder="Digite seu nome de Mestre..." autocomplete="off">
-                    <button class="btn btn-primary" onclick="app.login()">Entrar</button>
+                    <label for="player-name-input" class="sr-only">Nome do jogador</label>
+                    <input type="text" id="player-name-input" placeholder="Digite seu nome de Mestre..." autocomplete="off" aria-label="Digite seu nome de jogador" maxlength="20">
+                    <button class="btn btn-primary" onclick="app.login()" aria-label="Entrar no jogo">Entrar</button>
                 </div>
             </div>
         </section>
 
         <!-- Main Menu -->
-        <section id="main-menu" class="screen">
+        <section id="main-menu" class="screen" aria-label="Menu principal">
             <div class="menu-container">
                 <h1 class="title">Menu Principal</h1>
                 <p class="subtitle" id="welcome-text"></p>
                 
                 <div class="menu-layout">
                     <div class="menu-buttons">
-                        <button class="btn btn-primary" onclick="app.showScreen('difficulty-menu')">Modo Campanha (IA)</button>
-                        <button class="btn btn-primary" onclick="app.startGame('pvp')">Jogador vs Jogador</button>
-                        <button class="btn btn-secondary" onclick="app.showScreen('how-to-play')">Como Jogar</button>
-                        <button class="btn btn-secondary" onclick="app.logout()">Trocar Jogador</button>
+                        <button class="btn btn-primary" onclick="app.showScreen('difficulty-menu')" aria-label="Jogar modo campanha contra a inteligência artificial">Modo Campanha (IA)</button>
+                        <button class="btn btn-primary" onclick="app.startGame('pvp')" aria-label="Jogar contra outro jogador localmente">Jogador vs Jogador</button>
+                        <button class="btn btn-secondary" onclick="app.showScreen('how-to-play')" aria-label="Ver instruções de como jogar">Como Jogar</button>
+                        <button class="btn btn-secondary" onclick="app.logout()" aria-label="Trocar de jogador">Trocar Jogador</button>
                     </div>
                     
-                    <div class="leaderboard-panel">
+                    <div class="leaderboard-panel" aria-label="Ranking de vitórias">
                         <h3>🏆 Ranking de Vitórias</h3>
-                        <ul id="leaderboard-list">
+                        <ul id="leaderboard-list" aria-live="polite">
                             <!-- Preenchido via JS -->
                         </ul>
                     </div>
@@ -51,20 +60,20 @@
         </section>
 
         <!-- Difficulty Selection -->
-        <section id="difficulty-menu" class="screen">
+        <section id="difficulty-menu" class="screen" aria-label="Seleção de dificuldade">
             <div class="menu-container">
                 <h2>Selecione a Dificuldade</h2>
                 <div class="menu-buttons">
-                    <button class="btn btn-primary btn-easy" onclick="app.startGame('ai', 'easy')">Fácil (Clássico)</button>
-                    <button class="btn btn-primary btn-medium" onclick="app.startGame('ai', 'medium')">Médio (Neon)</button>
-                    <button class="btn btn-primary btn-hard" onclick="app.startGame('ai', 'hard')">Difícil (Cyberpunk)</button>
-                    <button class="btn btn-secondary" onclick="app.showScreen('main-menu')">Voltar</button>
+                    <button class="btn btn-primary btn-easy" onclick="app.startGame('ai', 'easy')" aria-label="Dificuldade fácil, tema clássico">Fácil (Clássico)</button>
+                    <button class="btn btn-primary btn-medium" onclick="app.startGame('ai', 'medium')" aria-label="Dificuldade média, tema neon">Médio (Neon)</button>
+                    <button class="btn btn-primary btn-hard" onclick="app.startGame('ai', 'hard')" aria-label="Dificuldade difícil, tema cyberpunk">Difícil (Cyberpunk)</button>
+                    <button class="btn btn-secondary" onclick="app.showScreen('main-menu')" aria-label="Voltar ao menu principal">Voltar</button>
                 </div>
             </div>
         </section>
 
         <!-- How To Play -->
-        <section id="how-to-play" class="screen">
+        <section id="how-to-play" class="screen" aria-label="Instruções de como jogar">
             <div class="menu-container rules-container">
                 <h2>Como Jogar</h2>
                 <div class="rules-content">
@@ -73,62 +82,62 @@
                     <p><strong>Captura:</strong> A captura é OBRIGATÓRIA. Se houver caminho livre após uma captura, devem ser feitas capturas múltiplas.</p>
                     <p><strong>Dama:</strong> Ao alcançar a última fileira do adversário, a peça é promovida a Dama, ganhando muito mais poder e mobilidade.</p>
                 </div>
-                <button class="btn btn-secondary" onclick="app.showScreen('main-menu')">Voltar</button>
+                <button class="btn btn-secondary" onclick="app.showScreen('main-menu')" aria-label="Voltar ao menu principal">Voltar</button>
             </div>
         </section>
 
         <!-- Game Screen -->
-        <section id="game-screen" class="screen">
+        <section id="game-screen" class="screen" aria-label="Tela do jogo de damas">
             
             <div class="game-layout">
-                <div class="side-art left"></div>
+                <div class="side-art left" aria-hidden="true"></div>
                 
                 <div class="game-center">
                     <header class="game-header">
-                        <div class="player-info player1 active-turn">
+                        <div class="player-info player1 active-turn" aria-label="Informações do jogador 1">
                             <span class="player-name" id="p1-name">Jogador 1</span>
-                            <span class="captures" id="p1-captures">0</span>
+                            <span class="captures" id="p1-captures" aria-label="Capturas do jogador 1">0</span>
                         </div>
-                        <div class="turn-indicator" id="turn-indicator">Turno do Jogador 1</div>
-                        <div class="player-info player2">
+                        <div class="turn-indicator" id="turn-indicator" aria-live="polite" role="status">Turno do Jogador 1</div>
+                        <div class="player-info player2" aria-label="Informações do jogador 2">
                             <span class="player-name" id="p2-name">Jogador 2</span>
-                            <span class="captures" id="p2-captures">0</span>
+                            <span class="captures" id="p2-captures" aria-label="Capturas do jogador 2">0</span>
                         </div>
                     </header>
 
                     <div class="board-wrapper">
-                        <div class="coordinates top">
+                        <div class="coordinates top" aria-hidden="true">
                             <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span>
                         </div>
-                        <div class="coordinates-side left">
+                        <div class="coordinates-side left" aria-hidden="true">
                             <span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
                         </div>
-                        <div id="board" class="board">
+                        <div id="board" class="board" role="grid" aria-label="Tabuleiro de damas 8 por 8">
                             <!-- Board cells generated via JS -->
                         </div>
-                        <div class="coordinates-side right">
+                        <div class="coordinates-side right" aria-hidden="true">
                             <span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
                         </div>
-                        <div class="coordinates bottom">
+                        <div class="coordinates bottom" aria-hidden="true">
                             <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span>
                         </div>
                     </div>
 
                     <footer class="game-footer">
-                        <button class="btn btn-secondary btn-small" onclick="app.quitGame()">Sair</button>
-                        <button class="btn btn-secondary btn-small" onclick="app.restartGame()">Reiniciar</button>
+                        <button class="btn btn-secondary btn-small" onclick="app.quitGame()" aria-label="Sair do jogo e voltar ao menu">Sair</button>
+                        <button class="btn btn-secondary btn-small" onclick="app.restartGame()" aria-label="Reiniciar a partida">Reiniciar</button>
                     </footer>
                 </div>
 
-                <div class="side-art right"></div>
+                <div class="side-art right" aria-hidden="true"></div>
             </div>
             
-            <div id="game-over-overlay" class="overlay hidden">
+            <div id="game-over-overlay" class="overlay hidden" role="dialog" aria-label="Resultado da partida">
                 <div class="modal">
                     <h2 id="winner-text">Vitória!</h2>
                     <div class="menu-buttons">
-                        <button class="btn btn-primary" onclick="app.restartGame()">Jogar Novamente</button>
-                        <button class="btn btn-secondary" onclick="app.quitGame()">Menu Principal</button>
+                        <button class="btn btn-primary" onclick="app.restartGame()" aria-label="Jogar novamente">Jogar Novamente</button>
+                        <button class="btn btn-secondary" onclick="app.quitGame()" aria-label="Voltar ao menu principal">Menu Principal</button>
                     </div>
                 </div>
             </div>
